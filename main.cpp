@@ -121,6 +121,16 @@ bool GameWindow::on_key_press_event(GdkEventKey* event) {
         case GDK_KEY_Up:
             temp_piece.rotate();
             break;
+        case GDK_KEY_space:
+            // Hard drop
+            while (player_board.valid_space(temp_piece)) {
+                player_current_piece = temp_piece;
+                temp_piece.y++;
+            }
+            player_board.lock_piece(player_current_piece);
+            reset_player_piece();
+            m_player_area.queue_draw();
+            return true; // Event handled
         default:
             return Gtk::Window::on_key_press_event(event);
     }

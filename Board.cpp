@@ -117,6 +117,9 @@ void Board::lock_piece(const Tetromino& shape) {
     for (const auto& pos : this->convert_shape_format(shape)) {
         this->locked_positions[pos] = piece_color;
     }
+    // Rebuild the grid with the new piece locked in *before* clearing rows
+    this->create_grid();
     this->clear_rows();
+    // Rebuild the grid again after rows have been cleared and shifted
     this->create_grid();
 }
