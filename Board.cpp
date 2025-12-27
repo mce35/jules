@@ -24,6 +24,7 @@ std::vector<std::pair<int, int>> Board::convert_shape_format(const Tetromino& sh
     for (int i = 0; i < shape_template.size(); ++i) {
         for (int j = 0; j < shape_template[i].size(); ++j) {
             if (shape_template[i][j] == '0') {
+                // The offsets are to center the 5x5 shape grid on the piece's (x, y) pivot
                 positions.push_back({shape.x + j - 2, shape.y + i - 4});
             }
         }
@@ -37,8 +38,11 @@ bool Board::valid_space(const Tetromino& shape) const {
         if (pos.first < 0 || pos.first >= 10 || pos.second >= 20) {
             return false;
         }
-        if (pos.second >= 0 && this->grid[pos.second][pos.first].r != 0.0) {
-            return false;
+        if (pos.second >= 0) {
+            const auto& cell = this->grid[pos.second][pos.first];
+            if (cell.r != 0.0 || cell.g != 0.0 || cell.b != 0.0) {
+                return false;
+            }
         }
     }
     return true;
@@ -61,7 +65,8 @@ void Board::clear_rows() {
     for (int i = 19; i >= 0; --i) {
         bool row_full = true;
         for (int j = 0; j < 10; ++j) {
-            if (this->grid[i][j].r == 0.0) { // Check for an empty cell
+            const auto& cell = this->grid[i][j];
+            if (cell.r == 0.0 && cell.g == 0.0 && cell.b == 0.0) { // Check for an empty cell
                 row_full = false;
                 break;
             }

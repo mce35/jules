@@ -6,6 +6,9 @@
 GameArea::GameArea(Board& b, const Tetromino& current, const Tetromino& next)
     : board(b), current_piece(current), next_piece(next), m_title("Player") {
 
+    // Request a size for this widget
+    set_size_request(PLAY_WIDTH + 200, WINDOW_HEIGHT);
+
     // Configure fonts once
     m_font_title.set_family("Monospace");
     m_font_title.set_weight(Pango::WEIGHT_BOLD);
@@ -24,33 +27,35 @@ void GameArea::set_title(const std::string& title) {
 }
 
 bool GameArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Set up a black background
-    cr->set_source_rgb(0, 0, 0);
+    // Black background
+    cr->set_source_rgb(0.1, 0.1, 0.1);
     cr->paint();
 
-    // Draw Title
-    auto layout = create_pango_layout(m_title);
-    layout->set_font_description(m_font_title);
     int text_width, text_height;
-    layout->get_pixel_size(text_width, text_height);
+
+    // --- Draw Title ---
+    auto title_layout = create_pango_layout(m_title);
+    title_layout->set_font_description(m_font_title);
+    title_layout->get_pixel_size(text_width, text_height);
     cr->set_source_rgb(1.0, 1.0, 1.0);
-    cr->move_to((get_allocated_width() / 2) - (text_width / 2), 30);
-    layout->show_in_cairo_context(cr);
+    // Center the title horizontally within the play area part of the widget
+    cr->move_to((PLAY_WIDTH / 2) - (text_width / 2) + 20, 30);
+    title_layout->show_in_cairo_context(cr);
 
-    // Draw Score
-    layout = create_pango_layout("Score: " + std::to_string(board.score));
-    layout->set_font_description(m_font_score);
-    layout->get_pixel_size(text_width, text_height);
+    // --- Draw Score ---
+    auto score_layout = create_pango_layout("Score: " + std::to_string(board.score));
+    score_layout->set_font_description(m_font_score);
     cr->move_to(PLAY_WIDTH + 40, 150);
-    layout->show_in_cairo_context(cr);
+    score_layout->show_in_cairo_context(cr);
 
-    // Main drawing area for the board
+    // --- Main drawing area for the board ---
     cr->save();
-    cr->translate(20, PLAYER_TOP_LEFT_Y); // Use PLAYER_TOP_LEFT_Y as a generic top margin
+    // The main translation point for the play area
+    cr->translate(20, 80);
 
+    draw_grid(cr);
     draw_board(cr);
     draw_piece(cr, current_piece);
-    draw_grid(cr);
 
     // Draw border around play area
     cr->set_source_rgb(1.0, 0.0, 0.0);
@@ -60,7 +65,7 @@ bool GameArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
 
     cr->restore();
 
-    // Draw next piece area
+    // --- Draw next piece area ---
     cr->save();
     cr->translate(PLAY_WIDTH + 40, 200);
     draw_next_piece_area(cr);

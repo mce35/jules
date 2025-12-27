@@ -6,7 +6,7 @@
 #include <map>
 
 // Screen dimensions
-constexpr int WINDOW_WIDTH = 800;
+constexpr int WINDOW_WIDTH = 1040;
 constexpr int WINDOW_HEIGHT = 700;
 
 constexpr int PLAY_WIDTH = 300;

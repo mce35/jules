@@ -28,8 +28,6 @@ private:
     Tetromino ai_next_piece;
 
     AI ai;
-    int ai_target_x;
-    int ai_target_rotation;
 
     // Helper methods
     int get_random_shape_idx();
@@ -50,8 +48,6 @@ GameWindow::GameWindow() :
     ai_current_piece(5, 0, get_random_shape_idx()),
     ai_next_piece(5, 0, get_random_shape_idx()),
     ai(ai_board),
-    ai_target_x(0),
-    ai_target_rotation(0),
     m_main_box(Gtk::ORIENTATION_HORIZONTAL, 20),
     m_player_area(player_board, player_current_piece, player_next_piece),
     m_ai_area(ai_board, ai_current_piece, ai_next_piece)
@@ -70,11 +66,6 @@ GameWindow::GameWindow() :
 
     // This is crucial for capturing key presses
     add_events(Gdk::KEY_PRESS_MASK);
-
-    // Get the first move for the AI
-    auto best_move = ai.get_best_move(ai_current_piece);
-    ai_target_x = best_move.first;
-    ai_target_rotation = best_move.second;
 
     // Start the game loop
     Glib::signal_timeout().connect(sigc::mem_fun(*this, &GameWindow::on_timeout), 300); // 300ms interval
