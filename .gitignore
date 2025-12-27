@@ -1,0 +1,5 @@
+# Ignore compiled object files
+*.o
+
+# Ignore the final executable
+tetris_ai
