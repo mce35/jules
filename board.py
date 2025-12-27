@@ -41,18 +41,25 @@ class Board:
                 if column == '0':
                     positions.append((shape.x + j, shape.y + i))
 
+        # Normalize the positions to be relative to the top-left of the shape.
+        # The offsets (-2, -4) are used to center the 5x5 shape grid
+        # around the piece's (x, y) coordinates, which acts as the pivot point.
         for i, pos in enumerate(positions):
             positions[i] = (pos[0] - 2, pos[1] - 4)
         return positions
 
     def valid_space(self, shape):
-        accepted_positions = [[(j, i) for j in range(10) if self.grid[i][j] == (0,0,0)] for i in range(20)]
-        accepted_positions = [j for sub in accepted_positions for j in sub]
         formatted = self.convert_shape_format(shape)
-
-        for pos in formatted:
-            if pos not in accepted_positions:
-                if pos[1] > -1:
+        for x, y in formatted:
+            # Check if the piece is within the horizontal grid boundaries
+            if not (0 <= x < 10):
+                return False
+            # Check if the piece is below the vertical grid boundary
+            if y >= 20:
+                return False
+            # Check for collision with other locked pieces, but only if it's on the board (y >= 0)
+            if y >= 0:
+                if self.grid[y][x] != (0,0,0):
                     return False
         return True
 

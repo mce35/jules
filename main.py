@@ -19,7 +19,6 @@ def draw_grid(surface, grid, sx, sy):
             pygame.draw.line(surface, (128,128,128), (sx + j*BLOCK_SIZE, sy), (sx + j*BLOCK_SIZE, sy + PLAY_HEIGHT)) # vertical lines
 
 def draw_window(surface, grid, sx, sy, title, score=0):
-    pygame.font.init()
     font = pygame.font.SysFont('comicsans', 60)
     label = font.render(title, 1, (255,255,255))
     surface.blit(label, (sx + PLAY_WIDTH / 2 - (label.get_width() / 2), 30))
@@ -64,6 +63,10 @@ def main():
     ai_current_piece = get_shape()
     ai_next_piece = get_shape()
     ai = AI(ai_board)
+    ai_target_x, ai_target_rotation = None, None
+    best_move = ai.get_best_move(ai_current_piece)
+    if best_move:
+        ai_target_x, ai_target_rotation = best_move
 
     clock = pygame.time.Clock()
     fall_time = 0
@@ -84,6 +87,23 @@ def main():
             if fall_speed > 0.12:
                 fall_speed -= 0.005
 
+        # AI Paced Movement
+        if ai_target_rotation is not None and ai_current_piece.rotation != ai_target_rotation:
+            ai_current_piece.rotate()
+            if not ai_board.valid_space(ai_current_piece):
+                ai_current_piece.rotate()
+                ai_current_piece.rotate()
+                ai_current_piece.rotate()
+        elif ai_target_x is not None:
+            if ai_current_piece.x < ai_target_x:
+                ai_current_piece.x += 1
+                if not ai_board.valid_space(ai_current_piece):
+                    ai_current_piece.x -= 1
+            elif ai_current_piece.x > ai_target_x:
+                ai_current_piece.x -= 1
+                if not ai_board.valid_space(ai_current_piece):
+                    ai_current_piece.x += 1
+
         if fall_time/1000 >= fall_speed:
             fall_time = 0
             player_current_piece.y += 1
@@ -91,15 +111,10 @@ def main():
                 player_current_piece.y -= 1
                 player_change_piece = True
 
-        # AI move
-        best_move = ai.get_best_move(ai_current_piece)
-        if best_move:
-            ai_current_piece.x = best_move[0]
-            ai_current_piece.rotation = best_move[1]
-            while ai_board.valid_space(ai_current_piece):
-                ai_current_piece.y += 1
-            ai_current_piece.y -= 1
-            ai_change_piece = True
+            ai_current_piece.y += 1
+            if not (ai_board.valid_space(ai_current_piece)) and ai_current_piece.y > 0:
+                ai_current_piece.y -= 1
+                ai_change_piece = True
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -145,6 +160,11 @@ def main():
 
         # AI piece logic
         ai_shape_pos = ai_board.convert_shape_format(ai_current_piece)
+        for i in range(len(ai_shape_pos)):
+            x, y = ai_shape_pos[i]
+            if y > -1:
+                ai_board.grid[y][x] = ai_current_piece.color
+
         if ai_change_piece:
             for pos in ai_shape_pos:
                 p = (pos[0], pos[1])
@@ -153,6 +173,12 @@ def main():
             ai_next_piece = get_shape()
             ai_change_piece = False
             ai_board.clear_rows(ai_board.grid, ai_board.locked_positions)
+
+            best_move = ai.get_best_move(ai_current_piece)
+            if best_move:
+                ai_target_x, ai_target_rotation = best_move
+            else:
+                ai_target_x, ai_target_rotation = None, None
 
         win.fill(BLACK)
         draw_window(win, player_board.grid, PLAYER_TOP_LEFT_X, PLAYER_TOP_LEFT_Y, 'Player', player_board.score)
@@ -176,6 +202,7 @@ def main():
     pygame.time.delay(3000)
 
 def main_menu():
+    pygame.init()
     run = True
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     while run:
